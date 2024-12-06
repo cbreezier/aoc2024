@@ -110,29 +110,25 @@ fn main() -> Result<()> {
         let height = input.len();
         let width = input[0].len();
 
-        // Stores the direction that we were traveling at any point in the path
-        let mut path = vec![vec![[0, 0]; width]; height];
+        // Stores whether we've been at this [y][x][dir_index]
+        let mut seen = vec![vec![[false; 4]; width]; height];
 
         let mut pos: [i32; 2] = initial_pos;
         let mut dir_index = 3; // Up
 
         // Start walking the guard
         loop {
-            let dir = DIRS[dir_index];
+            // println!("At pos {}, {} facing {}", pos[0], pos[1], dir_index);
 
-            println!("At pos {}, {} facing {}", pos[0], pos[1], dir_index);
-
-            let cache = path[pos[1] as usize][pos[0] as usize];
-            if cache[0] == dir[0] && cache[1] == dir[1] {
+            if seen[pos[1] as usize][pos[0] as usize][dir_index] {
                 // We've already been here, facing this direction...it's a loop!
                 return true;
             }
-            // Mark current position as walked if there isn't a record there already (to account for the turning without moving)
-            // if cache[0] == 0 && cache[1] == 0 {
-                path[pos[1] as usize][pos[0] as usize] = dir;
-            // }
+            // Mark current position as walked
+            seen[pos[1] as usize][pos[0] as usize][dir_index] = true;
 
             // Try move
+            let dir = DIRS[dir_index];
             let next_pos: [i32; 2] = [
                 pos[0] + dir[0],
                 pos[1] + dir[1],
@@ -175,12 +171,12 @@ fn main() -> Result<()> {
         let mut num_loops = 0;
         for y in 0..height {
             for x in 0..width {
-                if input[y][x] != b'#' {
-                    println!("Trying an obstacle at {} {}", x, y);
+                if input[y][x] != b'#' && input[y][x] != b'^' {
+                    // println!("Trying an obstacle at {} {}", x, y);
                     // Try turning it into an obstacle
                     input[y][x] = b'#';
                     if does_loop(&input, initial_pos) {
-                        println!("{} {} loops!", x, y);
+                        // println!("{} {} loops!", x, y);
                         num_loops += 1;
                     }
                     // Remove the obstacle for the next test
